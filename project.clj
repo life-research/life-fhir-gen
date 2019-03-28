@@ -8,7 +8,7 @@
   :dependencies
   [[cheshire "5.8.1"]
    [org.clojure/clojure "1.10.0"]
-   [org.clojure/tools.cli "0.4.1"]]
+   [org.clojure/tools.cli "0.4.2"]]
 
   :profiles
   {:uberjar
