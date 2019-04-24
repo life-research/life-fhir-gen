@@ -23,6 +23,14 @@
         (OffsetDateTime/ofInstant zone))))
 
 
+(defn rand-decimal
+  "Returns a random decimal with a precision of 4 and a scale between 0 and 2.
+
+  This should be typical for clinical decimal values."
+  []
+  (BigDecimal/valueOf (rand-int 10000) (rand-int 3)))
+
+
 (defn gen-patients-with-observations
   ([n]
    (gen-patients-with-observations 0 n))
@@ -56,7 +64,8 @@
                  [{:system "test"
                    :code (str observation-index)}]}
                 :valueQuantity
-                {:value (rand)}
+                {:value (rand-decimal)
+                 :unit "m"}
                 :effectiveDateTime (str (rand-date-time 2000 2010))}
                :request
                {:method "POST"
@@ -103,6 +112,8 @@
 
 (comment
   (str (rand-date-time 2000 2010))
+  (def start 0)
+  (def num 1)
   (gen-patients-with-observations 1)
   )
 
