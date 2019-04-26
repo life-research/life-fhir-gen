@@ -7,6 +7,7 @@
 
   :dependencies
   [[cheshire "5.8.1"]
+   [net.sourceforge.parallelcolt/parallelcolt "0.10.1"]
    [org.clojure/clojure "1.10.0"]
    [org.clojure/tools.cli "0.4.2"]]
 

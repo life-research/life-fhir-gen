@@ -3,6 +3,8 @@
     [cheshire.core :as json]
     [clojure.tools.cli :as cli])
   (:import
+    [cern.jet.random.tdouble Normal]
+    [java.math RoundingMode]
     [java.time OffsetDateTime Instant ZonedDateTime ZoneId LocalDate]
     [java.util UUID])
   (:gen-class))
@@ -31,6 +33,146 @@
   (BigDecimal/valueOf (rand-int 10000) (rand-int 3)))
 
 
+(defn sample-normal-decimal [mean sd scale]
+  (-> (Normal/staticNextDouble mean sd)
+      (BigDecimal/valueOf)
+      (.setScale ^long scale RoundingMode/HALF_UP)))
+
+
+(defn gen-body-weight-observation [patient-index encounter-index date value]
+  {:resourceType "Observation"
+   :id (str patient-index "-" encounter-index "-body-weight")
+   :status "final"
+   :subject {:reference (str "Patient/" patient-index)}
+   :code
+   {:coding
+    [{:system "http://loinc.org"
+      :code "29463-7"}]}
+   :valueQuantity
+   {:value value
+    :unit "kg"}
+   :effectiveDateTime (str date)})
+
+
+(defn gen-body-height-observation [patient-index encounter-index date value]
+  {:resourceType "Observation"
+   :id (str patient-index "-" encounter-index "-body-height")
+   :status "final"
+   :subject {:reference (str "Patient/" patient-index)}
+   :code
+   {:coding
+    [{:system "http://loinc.org"
+      :code "8302-2"}]}
+   :valueQuantity
+   {:value value
+    :unit "cm"}
+   :effectiveDateTime (str date)})
+
+
+(defn gen-bmi-observation [patient-index encounter-index date value]
+  {:resourceType "Observation"
+   :id (str patient-index "-" encounter-index "-bmi")
+   :status "final"
+   :subject {:reference (str "Patient/" patient-index)}
+   :code
+   {:coding
+    [{:system "http://loinc.org"
+      :code "39156-5"}]}
+   :valueQuantity
+   {:value value
+    :unit "kg/m2"}
+   :effectiveDateTime (str date)})
+
+
+(defn body-weight [^BigDecimal body-height ^BigDecimal bmi]
+  (.setScale
+    ^BigDecimal (* bmi (* (/ body-height 100) (/ body-height 100)))
+    1 RoundingMode/HALF_UP))
+
+
+(defn gen-smoker-observation [patient-index encounter-index date]
+  {:resourceType "Observation"
+   :id (str patient-index "-" encounter-index "-smoker")
+   :status "final"
+   :subject {:reference (str "Patient/" patient-index)}
+   :code
+   {:coding
+    [{:system "http://loinc.org"
+      :code "72166-2"}]}
+   :valueCodeableConcept
+   {:coding
+    [{:system "http://fhir.de/CodeSystem/raucherstatus"
+      :code (rand-nth ["raucher" "exraucher" "nieraucher" "unbekannt"])}]}
+   :effectiveDateTime (str date)})
+
+
+(defn gen-patient [patient-index]
+  (let [birth-date (rand-local-date 1950 2000)
+        age (long (sample-normal-decimal 70 10 0))
+        deceased-date (.plusYears birth-date age)]
+    (cond->
+      {:resourceType "Patient"
+       :id (str patient-index)
+       :gender (rand-nth ["male" "female"])
+       :birthDate (str birth-date)}
+      (.isBefore deceased-date (LocalDate/now))
+      (assoc :deceasedDateTime (str deceased-date)))))
+
+
+(defn rand-icd-10-code []
+  (format "%s%02d" (char (+ 65 (rand-int 26))) (rand-int 100)))
+
+
+(defn gen-condition [patient-index encounter-index date]
+  {:resourceType "Condition"
+   :id (str patient-index "-" encounter-index)
+   :subject {:reference (str "Patient/" patient-index)}
+   :code
+   {:coding
+    [{:system "http://hl7.org/fhir/sid/icd-10"
+      :version "2016"
+      :code (rand-icd-10-code)}]}
+   :assertedDate (str date)})
+
+
+(defn gen-specimen-liquid [patient-index encounter-index date type]
+  {:resourceType "Specimen"
+   :id (str patient-index "-" encounter-index "-" type)
+   :subject {:reference (str "Patient/" patient-index)}
+   :type
+   {:coding
+    []}
+   :collection
+   {:collectedDateTime (str date)}})
+
+
+(defn bundle-entry [{:keys [resourceType id] :as resource}]
+  {:resource
+   resource
+   :request
+   {:method "POST"
+    :url (str resourceType "/" id)}})
+
+
+(defn gen-encounter [patient-index encounter-index]
+  (let [date (rand-local-date 2000 2018)
+        bmi (sample-normal-decimal 27.3 4.89 1)
+        body-height (sample-normal-decimal 171 30.8 0)]
+    [(gen-condition
+       patient-index encounter-index date)
+     (gen-body-weight-observation
+       patient-index encounter-index date
+       (body-weight body-height bmi))
+     (gen-body-height-observation
+       patient-index encounter-index date
+       body-height)
+     (gen-bmi-observation
+       patient-index encounter-index date
+       bmi)
+     (gen-smoker-observation
+       patient-index encounter-index date)]))
+
+
 (defn gen-patients-with-observations
   ([n]
    (gen-patients-with-observations 0 n))
@@ -44,32 +186,11 @@
       (mapcat
         (fn [patient-index]
           (into
-            [{:resource
-              {:resourceType "Patient"
-               :id (str patient-index)
-               :gender (rand-nth ["male" "female"])
-               :birthDate (str (rand-local-date 1950 2000))}
-              :request
-              {:method "POST"
-               :url "Patient"}}]
-            (for [encounter-index (range 10)
-                  observation-index (range 10)]
-              {:resource
-               {:resourceType "Observation"
-                :id (str patient-index "-" encounter-index "-" observation-index)
-                :status "final"
-                :subject {:reference (str "Patient/" patient-index)}
-                :code
-                {:coding
-                 [{:system "test"
-                   :code (str observation-index)}]}
-                :valueQuantity
-                {:value (rand-decimal)
-                 :unit "m"}
-                :effectiveDateTime (str (rand-date-time 2000 2010))}
-               :request
-               {:method "POST"
-                :url "Observation"}}))))
+            [(bundle-entry (gen-patient patient-index))]
+            (comp
+              (mapcat #(gen-encounter patient-index %))
+              (map bundle-entry))
+            (range 2))))
       (range start (+ start n)))}))
 
 
