@@ -9,10 +9,10 @@ Generates FHIR Bundles with test data. Currently a fix set of FHIR patient and O
 
 Download an archive for your OS:
 
-* [Windows](https://github.com/life-research/life-fhir-gen/releases/download/v0.1/life-fhir-gen-0.1.zip)
-* [Linux](https://github.com/life-research/life-fhir-gen/releases/download/v0.1/life-fhir-gen-0.1.tar.gz)
+* [Windows](https://github.com/life-research/life-fhir-gen/releases/download/v0.1/life-fhir-gen-0.2.zip)
+* [Linux](https://github.com/life-research/life-fhir-gen/releases/download/v0.1/life-fhir-gen-0.2.tar.gz)
 
-Unpack the archive. It will create a directory called `life-fhir-gen-0.1`. Open console in this directory and run `life-fhir-gen`.
+Unpack the archive. It will create a directory called `life-fhir-gen-0.2`. Open console in this directory and run `life-fhir-gen`.
 
 ## Usage
 

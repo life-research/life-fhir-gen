@@ -1,4 +1,4 @@
-(defproject life-fhir-gen "0.1"
+(defproject life-fhir-gen "0.2"
   :description "FHIR Test Data Generator"
   :url "https://github.com/life-research/life-fhir-gen"
 

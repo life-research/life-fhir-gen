@@ -1,4 +1,4 @@
-version = 0.1
+version = 0.2
 
 target/life-fhir-gen-$(version)-standalone.jar:
 	lein clean
