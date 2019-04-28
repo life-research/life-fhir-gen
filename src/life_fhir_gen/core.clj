@@ -141,7 +141,19 @@
    :subject {:reference (str "Patient/" patient-index)}
    :type
    {:coding
-    []}
+    [{:system "http://germanbiobanknode.de/fhir/code-systems/sample-liquid"
+      :code type}]}
+   :collection
+   {:collectedDateTime (str date)}})
+
+(defn gen-specimen-tissue [patient-index encounter-index date type]
+  {:resourceType "Specimen"
+   :id (str patient-index "-" encounter-index "-" type)
+   :subject {:reference (str "Patient/" patient-index)}
+   :type
+   {:coding
+    [{:system "http://germanbiobanknode.de/fhir/code-systems/sample-tissue"
+      :code type}]}
    :collection
    {:collectedDateTime (str date)}})
 
@@ -150,7 +162,7 @@
   {:resource
    resource
    :request
-   {:method "POST"
+   {:method "PUT"
     :url (str resourceType "/" id)}})
 
 
@@ -170,7 +182,13 @@
        patient-index encounter-index date
        bmi)
      (gen-smoker-observation
-       patient-index encounter-index date)]))
+       patient-index encounter-index date)
+     (gen-specimen-liquid
+       patient-index encounter-index date
+       (rand-nth ["whole-blood" "plasma" "serum" "urine" "saliva"]))
+     (gen-specimen-tissue
+       patient-index encounter-index date
+       (rand-nth ["formalin" "frozen" "other"]))]))
 
 
 (defn gen-patients-with-observations
