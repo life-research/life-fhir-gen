@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/life-research/life-fhir-gen.svg?branch=master)](https://travis-ci.org/life-research/life-fhir-gen)
 [![Dependencies Status](https://versions.deps.co/life-research/life-fhir-gen/status.svg)](https://versions.deps.co/life-research/life-fhir-gen)
 
-Generates FHIR Bundles with test data. Currently a fix set of FHIR patient and Observation resources are generated.
+Generates FHIR® Bundles with test data. Currently a fix set of FHIR® Patient, Observation and Specimen resources are generated.
 
 ## Install
 
