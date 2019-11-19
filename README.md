@@ -1,3 +1,5 @@
+**This repository is archived. Please use https://github.com/samply/bbmri-fhir-gen instead.** 
+
 # LIFE FHIR Test Data Generator
 
 [![Build Status](https://travis-ci.org/life-research/life-fhir-gen.svg?branch=master)](https://travis-ci.org/life-research/life-fhir-gen)
